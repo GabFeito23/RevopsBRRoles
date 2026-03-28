@@ -1,10 +1,10 @@
 // Tier 1: Title must match at least one of these (case-insensitive)
 const TITLE_KEYWORDS = [
-  "revops", "revenue operations",
+  "revops", "rev ops", "revenue operations",
   "operações de receita", "operacoes de receita",
-  "sales ops", "sales operations",
+  "sales ops", "salesops", "sales operations",
   "operações de vendas", "operacoes de vendas",
-  "cs ops", "customer success ops", "customer success operations",
+  "cs ops", "csops", "customer success ops", "customer success operations",
   "gtm ops", "go-to-market ops", "go to market ops",
   "gtm engineer",
   "marketing ops", "marketing operations",
@@ -12,6 +12,7 @@ const TITLE_KEYWORDS = [
   "mops",
   "crm admin", "crm administrator", "administrador crm",
   "salesforce admin", "hubspot admin",
+  "operações comerciais", "operacoes comerciais",
 ];
 
 // Broader title keywords that require Tier 2 confirmation
@@ -19,7 +20,6 @@ const BROAD_TITLE_KEYWORDS = [
   "operations analyst",
   "analista de operações", "analista de operacoes",
   "business operations",
-  "operações comerciais", "operacoes comerciais",
 ];
 
 // Tier 2: Description must contain at least 2 of these to confirm relevance

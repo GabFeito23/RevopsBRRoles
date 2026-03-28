@@ -19,7 +19,7 @@ const SOURCES: Record<number, { name: string; fetch: () => Promise<ScrapedJob[]>
   1: { name: "lever", fetch: fetchLeverJobs },
   2: { name: "greenhouse", fetch: fetchGreenhouseJobs },
   3: { name: "linkedin", fetch: fetchLinkedInJobs },
-  4: { name: "inhire", fetch: fetchInhireJobs },
+  4: { name: "gupy_batch2", fetch: fetchInhireJobs },
   5: { name: "career_pages", fetch: fetchCareerPageJobs },
 };
 

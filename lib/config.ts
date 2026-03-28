@@ -23,11 +23,23 @@ export const GREENHOUSE_COMPANIES = [
   "livelo", "pagarme", "stone", "zup",
 ];
 
-export const GUPY_COMPANIES = [
+// Batch 1: Companies confirmed to have RevOps/SalesOps/CSOps roles via Google
+export const GUPY_COMPANIES_BATCH1 = [
+  "vempra", "carreirasomie", "blip", "clicksign", "logcomex",
+  "gedanken", "protiviti", "mgitech", "sejahype", "softexpert",
+  "takeblip", "aegro", "lwsa", "lumis", "cortex",
+  "caju", "clinicorp", "mova", "asaas", "leads2b",
+];
+
+// Batch 2: Large Brazilian companies likely to have RevOps/Ops roles
+export const GUPY_COMPANIES_BATCH2 = [
   "ambev", "itau", "btg", "totvs", "linx", "rdstation", "senior",
-  "sankhya", "omie", "bling", "conta-azul", "pipefy",
+  "sankhya", "bling", "conta-azul", "pipefy", "vivo", "vivodigital",
   "resultados-digitais", "magazineluiza", "americanas", "locaweb",
-  "movidesk", "zenvia", "blip", "take",
+  "movidesk", "zenvia", "picpay", "oportunidadesale", "voeazul",
+  "corporativogrupocasasbahia", "cacaushow", "gruponexxees",
+  "brivia", "gaugecarreiras", "nola", "vemprotime", "eccotalent",
+  "recordtv", "portaldevagas", "grpcom",
 ];
 
 // --- Industry mapping (company -> industry) ---
@@ -46,6 +58,12 @@ export const COMPANY_INDUSTRY: Record<string, string> = {
   madeiramadeira: "E-commerce", magazineluiza: "E-commerce",
   americanas: "E-commerce", kavak: "E-commerce", merama: "E-commerce",
   ambev: "Other", itau: "Banking", btg: "Banking",
+  clicksign: "SaaS/Tech", logcomex: "SaaS/Tech", gedanken: "SaaS/Tech",
+  protiviti: "Consulting", mgitech: "SaaS/Tech", softexpert: "SaaS/Tech",
+  aegro: "SaaS/Tech", lumis: "SaaS/Tech", cortex: "SaaS/Tech",
+  caju: "Fintech", clinicorp: "SaaS/Tech", asaas: "Fintech",
+  leads2b: "SaaS/Tech", mova: "SaaS/Tech", voeazul: "Other",
+  cacaushow: "Other", brivia: "SaaS/Tech",
 };
 
 // --- City to state mapping ---
