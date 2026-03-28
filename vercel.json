@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/scrape?step=0",
+      "schedule": "0 10 * * *"
+    }
+  ]
+}

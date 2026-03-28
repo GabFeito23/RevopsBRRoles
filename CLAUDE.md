@@ -1,7 +1,13 @@
 # RevOpsBR Roles - Brazilian Revenue Operations Job Board
 
 ## Project Overview
-A curated Brazilian RevOps job repository that scrapes, classifies, and stores revenue operations job listings in Airtable. Updated daily via Claude Code scheduled trigger.
+A curated Brazilian RevOps job board built with **Next.js** and deployed on **Vercel**. Scrapes, classifies, and stores revenue operations job listings in Neon Postgres. Updated daily via Vercel Cron.
+
+## Tech Stack
+- **Next.js 16** (App Router) + **TypeScript** + **Tailwind CSS**
+- **Neon Postgres** (Vercel-integrated) + **Drizzle ORM**
+- **Cheerio** for HTML parsing, **fuzzball** for fuzzy dedup
+- **Vercel Cron** triggers `/api/cron/scrape` daily at 7am BRT (10:00 UTC)
 
 ## User Context
 - The user is **non-technical**. All code must work out-of-the-box with minimal setup.
@@ -12,17 +18,20 @@ A curated Brazilian RevOps job repository that scrapes, classifies, and stores r
 RevOps, Sales Ops, CS Ops, GTM Ops, GTM Engineer, Marketing Ops, CRM Admin — all focused on **Brazil**.
 
 ## Data Sources (priority order)
-1. **Gupy** — Largest Brazilian ATS. Dual approach: API (when token available) + HTML scraping fallback. Covers ~60% of Brazilian tech company jobs.
+1. **Gupy** — Largest Brazilian ATS. Dual approach: API + HTML scraping fallback.
 2. **Lever** — Used by international companies with Brazil offices (Cloudwalk, VTEX, etc.)
 3. **Greenhouse** — Used by Nubank, Neon, PicPay, XP Inc, and other large fintechs.
-4. **LinkedIn** — Via Google Custom Search API. Supplemental source for roles not on ATS platforms.
+4. **LinkedIn** — Via Google Custom Search API. Optional, requires API keys.
 5. **Inhire** — Growing Brazilian ATS, HTML scraping of public career pages.
 6. **Direct Career Pages** — Best-effort for companies not on any ATS.
 
-## Data Storage
-- **Airtable** as database + public-facing view (the "website")
-- Table: "Jobs" with fields for classification (seniority, tech stack, work environment, etc.)
-- Public shared view = the job board visitors see
+## Architecture
+- **Frontend**: `app/page.tsx` (Server Component) + `components/job-board.tsx` (Client Component with filters)
+- **Cron**: `app/api/cron/scrape/route.ts` — step-chained pattern (one source per step, each gets 60s)
+- **Scrapers**: `lib/scraper/sources/*.ts`
+- **Classifier**: `lib/classifier/index.ts` — regex-based classification
+- **Dedup**: `lib/dedup.ts` — fuzzy matching with fuzzball
+- **DB**: `lib/db/schema.ts` (Drizzle) + `lib/db/index.ts` (lazy Neon connection)
 
 ## Classification Fields
 - **Role Category**: RevOps, Sales Ops, CS Ops, GTM Ops, GTM Engineer, Marketing Ops, CRM Admin
@@ -33,22 +42,14 @@ RevOps, Sales Ops, CS Ops, GTM Ops, GTM Engineer, Marketing Ops, CRM Admin — a
 - **State**: SP, RJ, MG, PR, SC, RS, BA, DF, CE, PE, GO, ES, Other
 - **Industry**: SaaS/Tech, Fintech, E-commerce, Healthtech, Edtech, Consulting, Marketplace, Banking, Other
 
-## Accuracy & Coverage Strategy
-- Two-tier keyword filtering: title match + description signal keywords to avoid false positives
-- Cross-source deduplication by company+title fuzzy matching
-- Staleness detection: jobs not found in re-scrape are marked "Fechada"
-- All application URLs are validated before storing
-- Search in both Portuguese and English (many BR companies post bilingual listings)
-
 ## Scheduled Runs
-- Daily at 7am BRT via Claude Code scheduled trigger
-- Run: `python main.py`
+- Daily at 7am BRT via Vercel Cron (`vercel.json`: `0 10 * * *`)
+- Step-chained: each source gets its own 60s serverless invocation
 - Graceful degradation: if one source fails, others continue
-- Logs summary: X new, Y updated, Z closed
 
-## Environment Variables
-- `AIRTABLE_API_KEY` — Airtable Personal Access Token
-- `AIRTABLE_BASE_ID` — Airtable Base ID (starts with app...)
+## Environment Variables (set in Vercel dashboard)
+- `DATABASE_URL` — Auto-set when Neon Postgres is linked
+- `CRON_SECRET` — Protects cron endpoint from unauthorized access
 - `GUPY_API_TOKEN` — (optional) Gupy JWT Bearer token
 - `GOOGLE_CSE_API_KEY` — (optional) Google Custom Search for LinkedIn
 - `GOOGLE_CSE_ID` — (optional) Custom Search Engine ID
