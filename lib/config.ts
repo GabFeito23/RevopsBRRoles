@@ -20,7 +20,7 @@ export const GREENHOUSE_COMPANIES = [
   "nubank", "neon", "picpay", "xpinc", "c6bank", "mercadobitcoin",
   "quintoandar", "madeiramadeira", "dock", "cora", "cloudhumans",
   "conta-azul", "deliverydireto", "gusto", "ifood", "kavak",
-  "livelo", "pagarme", "stone", "zup",
+  "livelo", "pagarme", "stone", "zup", "appsflyer",
 ];
 
 // Batch 1: Companies confirmed to have RevOps/SalesOps/CSOps roles via Google
@@ -29,6 +29,7 @@ export const GUPY_COMPANIES_BATCH1 = [
   "gedanken", "protiviti", "mgitech", "sejahype", "softexpert",
   "takeblip", "aegro", "lwsa", "lumis", "cortex",
   "caju", "clinicorp", "mova", "asaas", "leads2b",
+  "appmax", "kamino", "grupoboticario", "cimed", "eduzz",
 ];
 
 // Batch 2: Large Brazilian companies likely to have RevOps/Ops roles
@@ -39,7 +40,19 @@ export const GUPY_COMPANIES_BATCH2 = [
   "movidesk", "zenvia", "picpay", "oportunidadesale", "voeazul",
   "corporativogrupocasasbahia", "cacaushow", "gruponexxees",
   "brivia", "gaugecarreiras", "nola", "vemprotime", "eccotalent",
-  "recordtv", "portaldevagas", "grpcom",
+  "grpcom", "nasajon", "neogrid", "paytrack", "nstech",
+];
+
+// --- Jooble search keywords (used by Jooble API scraper) ---
+export const JOOBLE_SEARCH_KEYWORDS = [
+  "revops",
+  "revenue operations",
+  "sales ops",
+  "cs ops",
+  "marketing ops",
+  "CRM admin",
+  "operações comerciais",
+  "salesforce admin",
 ];
 
 // --- Industry mapping (company -> industry) ---
@@ -63,7 +76,10 @@ export const COMPANY_INDUSTRY: Record<string, string> = {
   aegro: "SaaS/Tech", lumis: "SaaS/Tech", cortex: "SaaS/Tech",
   caju: "Fintech", clinicorp: "SaaS/Tech", asaas: "Fintech",
   leads2b: "SaaS/Tech", mova: "SaaS/Tech", voeazul: "Other",
-  cacaushow: "Other", brivia: "SaaS/Tech",
+  cacaushow: "Other", brivia: "SaaS/Tech", appmax: "SaaS/Tech",
+  kamino: "Fintech", grupoboticario: "E-commerce", cimed: "Other",
+  eduzz: "SaaS/Tech", appsflyer: "SaaS/Tech", nasajon: "SaaS/Tech",
+  neogrid: "SaaS/Tech", paytrack: "SaaS/Tech", nstech: "SaaS/Tech",
 };
 
 // --- City to state mapping ---
@@ -79,10 +95,3 @@ export const CITY_STATE_MAP: Record<string, string> = {
   brasilia: "DF", goiania: "GO", vitoria: "ES",
   manaus: "AM", belem: "PA",
 };
-
-// --- Career pages (companies not on a major ATS) ---
-export const CAREER_PAGES = [
-  { company: "RD Station", url: "https://www.rdstation.com/careers/" },
-  { company: "Conta Azul", url: "https://contaazul.com/carreiras/" },
-  { company: "Omie", url: "https://omie.com.br/carreiras/" },
-];

@@ -9,22 +9,20 @@ import { STALE_DAYS } from "@/lib/config";
 import { fetchGupyJobs } from "@/lib/scraper/sources/gupy";
 import { fetchLeverJobs } from "@/lib/scraper/sources/lever";
 import { fetchGreenhouseJobs } from "@/lib/scraper/sources/greenhouse";
-import { fetchLinkedInJobs } from "@/lib/scraper/sources/linkedin";
+import { fetchJoobleJobs } from "@/lib/scraper/sources/jooble";
 import { fetchInhireJobs } from "@/lib/scraper/sources/inhire";
-import { fetchCareerPageJobs } from "@/lib/scraper/sources/career-pages";
 import type { ScrapedJob } from "@/lib/scraper/types";
 
 const SOURCES: Record<number, { name: string; fetch: () => Promise<ScrapedJob[]> }> = {
   0: { name: "gupy", fetch: fetchGupyJobs },
   1: { name: "lever", fetch: fetchLeverJobs },
   2: { name: "greenhouse", fetch: fetchGreenhouseJobs },
-  3: { name: "linkedin", fetch: fetchLinkedInJobs },
+  3: { name: "jooble", fetch: fetchJoobleJobs },
   4: { name: "gupy_batch2", fetch: fetchInhireJobs },
-  5: { name: "career_pages", fetch: fetchCareerPageJobs },
 };
 
-const CLEANUP_STEP = 6;
-const TOTAL_STEPS = 7;
+const CLEANUP_STEP = 5;
+const TOTAL_STEPS = 6;
 
 export async function GET(request: NextRequest) {
   // Verify cron secret (Vercel sets this header for cron invocations)
@@ -46,7 +44,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // Steps 0-5: scrape a source, classify, store, then chain to next step
+    // Steps 0-4: scrape a source, classify, store, then chain to next step
     if (step in SOURCES) {
       const source = SOURCES[step];
       console.log(`[Step ${step}] Scraping ${source.name}...`);
@@ -128,15 +126,15 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Step 6: Mark stale jobs as closed
+    // Step 5: Mark stale jobs as closed
     if (step === CLEANUP_STEP) {
-      console.log("[Step 6] Running staleness cleanup...");
+      console.log("[Step 5] Running staleness cleanup...");
 
       const cutoff = new Date();
       cutoff.setDate(cutoff.getDate() - STALE_DAYS);
       const cutoffStr = cutoff.toISOString().split("T")[0];
 
-      const result = await getDb()
+      await getDb()
         .update(jobs)
         .set({ status: "Fechada", updatedAt: new Date() })
         .where(
@@ -146,7 +144,7 @@ export async function GET(request: NextRequest) {
           ),
         );
 
-      console.log(`[Step 6] Staleness cleanup complete`);
+      console.log(`[Step 5] Staleness cleanup complete`);
 
       return NextResponse.json({
         step,

@@ -3,8 +3,14 @@
 ## Project Overview
 A curated Brazilian RevOps job board built with **Next.js** and deployed on **Vercel**. Scrapes, classifies, and stores revenue operations job listings in Neon Postgres. Updated daily via Vercel Cron.
 
+## Deployment
+- **Live URL**: https://revops-br-job-board.vercel.app
+- **Vercel Project**: `revops-br-job-board` (owner: `gabrielaguiarfeitosa-3524s-projects`)
+- **GitHub Repo**: https://github.com/GabFeito23/RevopsBRRoles (branch: `main`)
+- **Vercel Dashboard**: https://vercel.com/gabrielaguiarfeitosa-3524s-projects/revops-br-job-board
+
 ## Tech Stack
-- **Next.js 16** (App Router) + **TypeScript** + **Tailwind CSS**
+- **Next.js 16** (App Router) + **TypeScript** + **Tailwind CSS v4**
 - **Neon Postgres** (Vercel-integrated) + **Drizzle ORM**
 - **Cheerio** for HTML parsing, **fuzzball** for fuzzy dedup
 - **Vercel Cron** triggers `/api/cron/scrape` daily at 7am BRT (10:00 UTC)
@@ -48,8 +54,18 @@ RevOps, Sales Ops, CS Ops, GTM Ops, GTM Engineer, Marketing Ops, CRM Admin — a
 - Graceful degradation: if one source fails, others continue
 
 ## Environment Variables (set in Vercel dashboard)
-- `DATABASE_URL` — Auto-set when Neon Postgres is linked
-- `CRON_SECRET` — Protects cron endpoint from unauthorized access
+- `DATABASE_URL` — Auto-set when Neon Postgres is linked (NOT YET CONNECTED)
+- `CRON_SECRET` — Set to `revopsbr-cron-2026-secret`
 - `GUPY_API_TOKEN` — (optional) Gupy JWT Bearer token
 - `GOOGLE_CSE_API_KEY` — (optional) Google Custom Search for LinkedIn
 - `GOOGLE_CSE_ID` — (optional) Custom Search Engine ID
+
+## Setup Status
+- [x] Next.js app built and compiling
+- [x] Deployed to Vercel (production)
+- [x] GitHub repo created and synced
+- [x] CRON_SECRET configured
+- [x] Neon Postgres database connected via Vercel Storage
+- [x] Database schema pushed (`drizzle-kit push`)
+- [x] First scrape triggered (6 jobs from Gupy + Greenhouse)
+- [ ] GitHub-Vercel auto-deploy connection (needs Login Connection in Vercel)

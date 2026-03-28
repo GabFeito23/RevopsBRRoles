@@ -6,3 +6,6 @@ node_modules/
 next-env.d.ts
 .vercel
 .claude/
+
+.vercel
+.env*.local
