@@ -55,6 +55,55 @@ export const JOOBLE_SEARCH_KEYWORDS = [
   "salesforce admin",
 ];
 
+// --- Google Custom Search queries (broad web discovery) ---
+export const GOOGLE_SEARCH_QUERIES = [
+  // RevOps + work model (PT-BR)
+  "revops remoto brasil vaga",
+  "revops híbrido brasil vaga",
+  "revops presencial brasil vaga",
+  "revenue operations remoto brasil",
+  "revenue operations híbrido brasil",
+  // Sales Ops / CS Ops
+  "sales ops remoto brasil vaga",
+  "sales ops híbrido brasil",
+  "cs ops remoto brasil vaga",
+  "marketing ops remoto brasil vaga",
+  // Portuguese terms
+  "operações de receita vaga remoto",
+  "operações comerciais vaga remoto brasil",
+  // Discover new Gupy companies
+  'site:gupy.io revops',
+  'site:gupy.io "revenue operations"',
+  'site:gupy.io "sales ops"',
+  'site:gupy.io "operações comerciais"',
+  // Other job platforms
+  'site:linkedin.com/jobs revops brasil',
+  'site:linkedin.com/jobs "revenue operations" brasil',
+  'site:vagas.com.br revops',
+  'site:infojobs.com.br revops',
+  'site:catho.com.br revops',
+  // CRM Admin roles
+  "salesforce admin remoto brasil vaga",
+  "hubspot admin remoto brasil vaga",
+  "CRM admin remoto brasil vaga",
+  // GTM
+  "gtm ops remoto brasil vaga",
+  "gtm engineer remoto brasil",
+];
+
+// --- InfoJobs search keywords ---
+export const INFOJOBS_SEARCH_KEYWORDS = [
+  "revops",
+  "revenue operations",
+  "sales ops",
+  "sales operations",
+  "marketing ops",
+  "CRM admin",
+  "salesforce admin",
+  "operações comerciais",
+  "cs ops",
+];
+
 // --- Industry mapping (company -> industry) ---
 export const COMPANY_INDUSTRY: Record<string, string> = {
   nubank: "Fintech", neon: "Fintech", picpay: "Fintech", xpinc: "Fintech",

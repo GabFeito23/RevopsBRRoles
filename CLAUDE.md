@@ -49,7 +49,21 @@ RevOps, Sales Ops, CS Ops, GTM Ops, GTM Engineer, Marketing Ops, CRM Admin — a
 - Same `__NEXT_DATA__` approach as batch 1, larger general companies
 - Companies: ambev, itau, btg, totvs, linx, rdstation, vivo, picpay, etc.
 
-### Step 5: Cleanup
+### Step 5: Google Custom Search — **Requires API keys**
+- Uses Google Custom Search API to discover RevOps jobs across the Brazilian web
+- Searches 25+ queries: "revops remoto brasil", "sales ops híbrido", `site:gupy.io revops`, `site:linkedin.com/jobs revops`, etc.
+- Auto-discovers new Gupy companies, LinkedIn listings, and jobs on any indexed site
+- Requires `GOOGLE_CSE_API_KEY` + `GOOGLE_CSE_ID` (free 100 searches/day)
+- Parses title/company from Google result snippets, extracts location from text
+- Source: `lib/scraper/sources/google-search.ts`
+
+### Step 6: InfoJobs.com.br — **~7-15 jobs**
+- Scrapes server-rendered HTML from InfoJobs, one of Brazil's largest job boards
+- Searches 9 keywords: revops, revenue operations, sales ops, marketing ops, CRM admin, etc.
+- Job cards have `div.js_rowCard[data-id]` structure with title in `h2`, company/location in child divs
+- Source: `lib/scraper/sources/infojobs.ts`
+
+### Step 7: Cleanup
 - Marks jobs as "Fechada" if `lastVerified` > 7 days old
 
 ### Removed Sources
@@ -61,12 +75,13 @@ RevOps, Sales Ops, CS Ops, GTM Ops, GTM Engineer, Marketing Ops, CRM Admin — a
 - **Gupy portal API is broken** for niche terms. `portal.api.gupy.io/api/job?name=revops` returns 0. But Google indexes hundreds of RevOps jobs on Gupy company subdomains. The working approach is scraping `__NEXT_DATA__` from each company's career page.
 - **Most job aggregators are SPAs**: Indeed, Jooble, Glassdoor, Inhire, Workable all render job data via JavaScript. Server-side HTTP scraping gets empty/minimal HTML. Would need a headless browser (Puppeteer/Playwright) to scrape them.
 - **Jooble API is US-only**: Despite `br.jooble.org` showing Brazilian jobs, the REST API only returns US results. The BR subdomain API is blocked by Cloudflare.
-- **Best approach for more jobs**: Google Custom Search API (free 100 searches/day) searching `site:gupy.io revops` would discover new companies automatically.
+- **InfoJobs.com.br is server-rendered** (ASP.NET) and scrapeable with Cheerio. Has 7-15 RevOps jobs. Other BR aggregators (Catho, Vagas.com.br, Remotar) are client-rendered SPAs or have zero RevOps results.
+- **Brazilian job aggregator research** (March 2026): Vagas.com.br has Cloudflare + ~0 RevOps jobs. Catho returns 404s (SPA). ProgramaThor is dev-only. Trampos.co has ~1 job. Remotar is client-rendered with no data.
 
 ## Architecture
 - **Frontend**: `app/page.tsx` (Server Component) + `components/job-board.tsx` (Client Component with filters)
-- **Cron**: `app/api/cron/scrape/route.ts` — step-chained pattern (5 source steps + 1 cleanup)
-- **Scrapers**: `lib/scraper/sources/*.ts` (gupy.ts, lever.ts, greenhouse.ts, jooble.ts, inhire.ts)
+- **Cron**: `app/api/cron/scrape/route.ts` — step-chained pattern (7 source steps + 1 cleanup)
+- **Scrapers**: `lib/scraper/sources/*.ts` (gupy.ts, lever.ts, greenhouse.ts, jooble.ts, inhire.ts, google-search.ts, infojobs.ts)
 - **Classifier**: `lib/classifier/index.ts` — regex-based classification
 - **Dedup**: `lib/dedup.ts` — fuzzy matching with fuzzball
 - **DB**: `lib/db/schema.ts` (Drizzle) + `lib/db/index.ts` (lazy Neon connection)
@@ -96,8 +111,8 @@ RevOps, Sales Ops, CS Ops, GTM Ops, GTM Engineer, Marketing Ops, CRM Admin — a
 - `CRON_SECRET` — Set to `revopsbr-cron-2026-secret` ✅
 - `JOOBLE_API_KEY` — Set to `8d91df87-c45b-4d76-b9df-00a7b31b7a0e` ✅ (but API doesn't work for Brazil)
 - `GUPY_API_TOKEN` — (optional) Not configured. Gupy portal API is broken anyway.
-- `GOOGLE_CSE_API_KEY` — (optional) Not configured. Would unlock Google search-based job discovery.
-- `GOOGLE_CSE_ID` — (optional) Not configured.
+- `GOOGLE_CSE_API_KEY` — (optional) Not configured. Would unlock Google Search scraper (Step 5) — free 100 searches/day.
+- `GOOGLE_CSE_ID` — (optional) Not configured. Create at https://programmablesearchengine.google.com/
 
 ## Setup Status
 - [x] Next.js app built and compiling
@@ -112,9 +127,12 @@ RevOps, Sales Ops, CS Ops, GTM Ops, GTM Engineer, Marketing Ops, CRM Admin — a
 - [x] Career pages removed
 - [x] Jooble API added (but doesn't work for Brazil)
 - [ ] GitHub-Vercel auto-deploy connection (needs Login Connection in Vercel)
-- [ ] Google Custom Search API setup (would discover new Gupy companies automatically)
+- [ ] Google Custom Search API setup (would unlock Step 5: Google Search scraper)
+- [x] Google Search scraper built (Step 5) — discovers jobs across all indexed sites
+- [x] InfoJobs.com.br scraper built (Step 6) — server-rendered, ~7-15 RevOps jobs
+- [x] Brazilian job aggregators researched — InfoJobs is the only viable one without headless browser
 
 ## Next Steps to Get More Jobs
-1. **Google Custom Search API** — Free 100 searches/day. Search `site:gupy.io revops` to auto-discover new companies. This is the highest-impact next step.
+1. **Set up Google Custom Search API** — Free 100 searches/day. The scraper code is ready (Step 5), just needs `GOOGLE_CSE_API_KEY` + `GOOGLE_CSE_ID` configured in Vercel. Create at https://programmablesearchengine.google.com/
 2. **Headless browser scraping** — Use Puppeteer/Playwright to scrape Indeed (`br.indeed.com`) and Jooble (`br.jooble.org`) which have 30-60+ Brazilian RevOps jobs but require JS rendering.
-3. **More Gupy companies** — Continuously discover and add new company subdomains.
+3. **More Gupy companies** — Google Search scraper (Step 5) will auto-discover new Gupy companies via `site:gupy.io revops` queries.
