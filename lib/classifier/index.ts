@@ -92,11 +92,51 @@ function classifySeniority(title: string): string {
   return "Pleno";
 }
 
+// Non-Brazil locations that indicate the job is based abroad.
+// If a job is located outside Brazil, it MUST be remote for BR/LATAM candidates.
+const FOREIGN_LOCATION_PATTERNS = [
+  // US states & cities
+  /\b(?:new york|san francisco|los angeles|chicago|austin|boston|seattle|denver|miami|atlanta|dallas|houston|portland|phoenix|charlotte|nashville|minneapolis|washington\s*d\.?c\.?)\b/i,
+  /\b(?:NY|CA|TX|FL|WA|IL|MA|CO|GA|NC|PA|OH|VA|AZ|OR|NV|MN|TN|DC)\b/,
+  // Countries / regions
+  /\bunited states\b/i, /\busa\b/i, /\bu\.s\.a?\b/i,
+  /\bcanada\b/i, /\buk\b/i, /\bunited kingdom\b/i, /\bgermany\b/i,
+  /\beurope\b/i, /\beuropa\b/i,
+  /\blatam\b/i, /\blatin\s*america\b/i, /\bamérica\s*latina\b/i,
+  /\bglobal\b/i, /\bworldwide\b/i,
+];
+
+// Signals that a job targets Brazil/LATAM candidates specifically
+const BRAZIL_TARGET_PATTERNS = [
+  /\bbrasil\b/i, /\bbrazil\b/i, /\bbr\b/i,
+  /\blatam\b/i, /\blatin\s*america\b/i, /\bamérica\s*latina\b/i,
+];
+
+function isForeignLocation(text: string): boolean {
+  return FOREIGN_LOCATION_PATTERNS.some((p) => p.test(text));
+}
+
+function targetsBrazil(text: string): boolean {
+  return BRAZIL_TARGET_PATTERNS.some((p) => p.test(text));
+}
+
 function classifyWorkEnvironment(description: string, location: string): string {
   const text = `${description} ${location}`.toLowerCase();
+  const fullText = `${description} ${location}`;
+
+  // If the job is located outside Brazil but targets BR/LATAM,
+  // it must be remote — you can't be presencial in the US from Brazil.
+  if (isForeignLocation(fullText) && targetsBrazil(fullText)) {
+    return "Remoto";
+  }
+
   if (matchesAny(text, REMOTE_PATTERNS)) return "Remoto";
   if (matchesAny(text, HYBRID_PATTERNS)) return "Hibrido";
   if (matchesAny(text, ONSITE_PATTERNS)) return "Presencial";
+
+  // If location is clearly foreign (no Brazil mention), default to Remoto
+  if (isForeignLocation(fullText)) return "Remoto";
+
   return "Presencial";
 }
 
