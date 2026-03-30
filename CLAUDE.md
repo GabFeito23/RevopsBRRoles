@@ -13,6 +13,7 @@ A curated Brazilian RevOps job board built with **Next.js** and deployed on **Ve
 - **Next.js 16** (App Router) + **TypeScript** + **Tailwind CSS v4**
 - **Neon Postgres** (Vercel-integrated) + **Drizzle ORM**
 - **Cheerio** for HTML parsing, **fuzzball** for fuzzy dedup
+- **Exa AI** for neural web search (job discovery)
 - **Vercel Cron** triggers `/api/cron/scrape` daily at 7am BRT (10:00 UTC)
 
 ## User Context
@@ -21,9 +22,9 @@ A curated Brazilian RevOps job board built with **Next.js** and deployed on **Ve
 - When errors happen, provide clear human-readable messages with fix instructions.
 
 ## Target Roles
-RevOps, Sales Ops, CS Ops, GTM Ops, GTM Engineer, Marketing Ops, CRM Admin — all focused on **Brazil**.
+RevOps, Sales Ops, CS Ops, GTM Ops, GTM Engineer, Marketing Ops, CRM Admin — all focused on **Brazil** (including US/global companies hiring remotely from Brazil/LATAM).
 
-## Data Sources & Scraping Pipeline (6 steps)
+## Data Sources & Scraping Pipeline (9 steps)
 
 ### Step 0: Gupy Batch 1 (25 companies) — **Primary source, ~12 jobs**
 - Scrapes `__NEXT_DATA__` JSON from individual company career pages (e.g. `vempra.gupy.io`)
@@ -63,18 +64,21 @@ RevOps, Sales Ops, CS Ops, GTM Ops, GTM Engineer, Marketing Ops, CRM Admin — a
 - Job cards have `div.js_rowCard[data-id]` structure with title in `h2`, company/location in child divs
 - Source: `lib/scraper/sources/infojobs.ts`
 
-### Step 7: Exa AI Search — **~10-25 jobs**
+### Step 7: Exa AI Search — **~50 jobs found, ~10-25 new after dedup**
 - Uses Exa AI's neural search API to discover RevOps jobs across the web
 - 10 semantic queries covering: RevOps, Sales Ops, CRM Admin, Marketing Ops, GTM Ops, CS Ops
 - Searches both Brazil-based roles AND US/global companies hiring from Brazil/LATAM
+- US/global jobs targeting Brazil are automatically forced to **Remoto** work mode by the classifier
 - Filters by `startPublishedDate` (last 14 days) to only return recent postings
+- Uses Exa's `publishedDate` as `dateFound` — this is the real job posting date, not the scrape date
+- Homepage filters by `dateFound >= 15 days ago` to show only genuinely recent jobs
 - Discovers jobs on sites other scrapers miss: revopscareers.com, sportstechjobs.com, workingnomads.com, flexionis, himalayas.app, jobgether.com, anchorpoint, remocate.app, ashbyhq.com, etc.
 - Targeted domain searches for Gupy and LinkedIn
 - Requires `EXA_API_KEY` environment variable
 - Source: `lib/scraper/sources/exa-search.ts`
 
 ### Step 8: Cleanup
-- Marks jobs as "Fechada" if `lastVerified` > 7 days old
+- Marks jobs as "Fechada" if `lastVerified` > 15 days old (STALE_DAYS)
 
 ### Removed Sources
 - **Inhire** — B2B recruitment SPA software, NOT a job board. No public job listings. Replaced with Gupy batch 2.
@@ -87,43 +91,62 @@ RevOps, Sales Ops, CS Ops, GTM Ops, GTM Engineer, Marketing Ops, CRM Admin — a
 - **Jooble API is US-only**: Despite `br.jooble.org` showing Brazilian jobs, the REST API only returns US results. The BR subdomain API is blocked by Cloudflare.
 - **InfoJobs.com.br is server-rendered** (ASP.NET) and scrapeable with Cheerio. Has 7-15 RevOps jobs. Other BR aggregators (Catho, Vagas.com.br, Remotar) are client-rendered SPAs or have zero RevOps results.
 - **Brazilian job aggregator research** (March 2026): Vagas.com.br has Cloudflare + ~0 RevOps jobs. Catho returns 404s (SPA). ProgramaThor is dev-only. Trampos.co has ~1 job. Remotar is client-rendered with no data.
+- **Exa AI Search** excels at semantic discovery across the entire web. Found 50+ relevant jobs in first run. Particularly good at finding US/global remote roles targeting Brazil/LATAM that other scrapers miss entirely.
 
 ## Architecture
 - **Frontend**: `app/page.tsx` (Server Component) + `components/job-board.tsx` (Client Component with filters)
-- **Cron**: `app/api/cron/scrape/route.ts` — step-chained pattern (8 source steps + 1 cleanup)
+- **Cron**: `app/api/cron/scrape/route.ts` — step-chained pattern (8 source steps + 1 cleanup, 9 total)
 - **Scrapers**: `lib/scraper/sources/*.ts` (gupy.ts, lever.ts, greenhouse.ts, jooble.ts, inhire.ts, google-search.ts, infojobs.ts, exa-search.ts)
-- **Classifier**: `lib/classifier/index.ts` — regex-based classification
-- **Dedup**: `lib/dedup.ts` — fuzzy matching with fuzzball
+- **Classifier**: `lib/classifier/index.ts` — regex-based classification with foreign location detection
+- **Dedup**: `lib/dedup.ts` — fuzzy matching with fuzzball (85% threshold)
 - **DB**: `lib/db/schema.ts` (Drizzle) + `lib/db/index.ts` (lazy Neon connection)
 - **Keywords**: `lib/keywords.ts` — two-tier relevance filter (title keywords + description signals)
-- **Config**: `lib/config.ts` — company lists, industry mapping, city-state mapping
+- **Config**: `lib/config.ts` — company lists, industry mapping, city-state mapping, Exa query configs
+- **HTTP**: `lib/scraper/http.ts` — shared fetch with retry, timeout, and delay helpers
 
 ## Keyword Matching
 - **Tier 1 (title match)**: revops, rev ops, revenue operations, sales ops, salesops, cs ops, csops, customer success ops, gtm ops, marketing ops, mops, crm admin, salesforce admin, hubspot admin, operações comerciais, operações de vendas, operações de receita
 - **Tier 2 (broad + description confirmation)**: operations analyst, analista de operações, business operations — requires ≥2 description signals (CRM, Salesforce, HubSpot, funnel, pipeline, automation, dashboard, etc.)
+- **Tier 3 (rejection)**: Generic "operações" without qualifiers (comerciais, estratég, dados, receita, vendas, marketing, revenue) is rejected
 
 ## Classification Fields
 - **Role Category**: RevOps, Sales Ops, CS Ops, GTM Ops, GTM Engineer, Marketing Ops, CRM Admin
 - **Seniority**: Estagio, Junior, Pleno, Senior, Especialista, Coordenador, Gerente, Head/Diretor
 - **Work Environment**: Remoto, Hibrido, Presencial
+  - **Foreign location rule**: Jobs located outside Brazil (US, LATAM, global) that target BR/LATAM candidates are **always classified as Remoto** — you can't be presencial from another country
 - **Tech Stack**: Salesforce, HubSpot, Pipedrive, Clay, Zapier, Make, SQL, Tableau, Power BI, RD Station, etc.
 - **Contract Type**: CLT, PJ, CLT Flex
-- **State**: SP, RJ, MG, PR, SC, RS, BA, DF, CE, PE, GO, ES, Other
+- **State**: SP, RJ, MG, PR, SC, RS, BA, DF, CE, PE, GO, ES, Remoto, Other
+  - Foreign locations get state "Other" (not "Remoto" — work mode handles that)
 - **Industry**: SaaS/Tech, Fintech, E-commerce, Healthtech, Edtech, Consulting, Marketplace, Banking, Other
+
+## Date Filtering
+- **`dateFound`** stores the **actual job posting/publication date**, NOT the date we scraped it
+- For Exa: uses `publishedDate` from Exa's search results
+- For other scrapers: uses today's date (best approximation since those sources only show active jobs)
+- **Homepage** filters: `dateFound >= today - 15 days` (STALE_DAYS) to show only recent postings
+- **Cleanup step** marks jobs as "Fechada" if `lastVerified > 15 days ago`
 
 ## Scheduled Runs
 - Daily at 7am BRT via Vercel Cron (`vercel.json`: `0 10 * * *`)
 - Step-chained: each source gets its own 60s serverless invocation
 - Graceful degradation: if one source fails, others continue
+- Pipeline: Step 0 (Gupy) → Step 1 (Lever) → Step 2 (Greenhouse) → Step 3 (Jooble) → Step 4 (Gupy Batch 2) → Step 5 (Google Search) → Step 6 (InfoJobs) → Step 7 (Exa Search) → Step 8 (Cleanup)
 
 ## Environment Variables (set in Vercel dashboard)
 - `DATABASE_URL` — Auto-set by Neon Postgres integration ✅
 - `CRON_SECRET` — Set to `revopsbr-cron-2026-secret` ✅
 - `JOOBLE_API_KEY` — Set to `8d91df87-c45b-4d76-b9df-00a7b31b7a0e` ✅ (but API doesn't work for Brazil)
+- `EXA_API_KEY` — Set to `7606e30e-4151-41ad-adef-a168f857eefe` ✅ (production + development)
 - `GUPY_API_TOKEN` — (optional) Not configured. Gupy portal API is broken anyway.
 - `GOOGLE_CSE_API_KEY` — (optional) Not configured. Would unlock Google Search scraper (Step 5) — free 100 searches/day.
 - `GOOGLE_CSE_ID` — (optional) Not configured. Create at https://programmablesearchengine.google.com/
-- `EXA_API_KEY` — (optional) Not configured. Unlocks Exa AI Search scraper (Step 7). Get at https://exa.ai/
+
+## Frontend Filters
+- Source filter (`components/job-board.tsx`): gupy, lever, greenhouse, infojobs, exa, google
+- Other filters: Categoria (role), Senioridade, Modelo (work mode), Estado
+- Search bar: free-text search across title, company, tech stack
+- Page revalidates every 1 hour (`revalidate = 3600`)
 
 ## Setup Status
 - [x] Next.js app built and compiling
@@ -137,12 +160,16 @@ RevOps, Sales Ops, CS Ops, GTM Ops, GTM Engineer, Marketing Ops, CRM Admin — a
 - [x] Inhire replaced (B2B software, not a job board)
 - [x] Career pages removed
 - [x] Jooble API added (but doesn't work for Brazil)
-- [ ] GitHub-Vercel auto-deploy connection (needs Login Connection in Vercel)
-- [ ] Google Custom Search API setup (would unlock Step 5: Google Search scraper)
 - [x] Google Search scraper built (Step 5) — discovers jobs across all indexed sites
 - [x] InfoJobs.com.br scraper built (Step 6) — server-rendered, ~7-15 RevOps jobs
 - [x] Brazilian job aggregators researched — InfoJobs is the only viable one without headless browser
-- [x] Exa AI Search scraper built (Step 7) — neural search across all job boards, date-filtered, Brazil + US-hiring-from-Brazil
+- [x] Exa AI Search scraper built (Step 7) — neural search across all job boards, date-filtered
+- [x] Exa API key configured in Vercel (production + development)
+- [x] Exa scraper tested — 50 jobs found on first run, ~90 total jobs on site
+- [x] Foreign location classifier — US/LATAM/global jobs forced to Remoto work mode
+- [x] Source filter updated — infojobs, exa, google added to frontend dropdown
+- [ ] GitHub-Vercel auto-deploy connection (needs Login Connection in Vercel)
+- [ ] Google Custom Search API setup (would unlock Step 5: Google Search scraper)
 
 ## Next Steps to Get More Jobs
 1. **Set up Google Custom Search API** — Free 100 searches/day. The scraper code is ready (Step 5), just needs `GOOGLE_CSE_API_KEY` + `GOOGLE_CSE_ID` configured in Vercel. Create at https://programmablesearchengine.google.com/
