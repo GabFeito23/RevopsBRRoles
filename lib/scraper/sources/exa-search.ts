@@ -122,9 +122,12 @@ export async function fetchExaJobs(): Promise<ScrapedJob[]> {
         // Extract location from text content
         const location = extractLocation(fullText, url);
 
-        // Always use today as dateFound (when we discovered it).
-        // Exa's publishedDate can be weeks old and would get filtered
-        // out by the STALE_DAYS cutoff on the homepage.
+        // Use Exa's publishedDate as the actual job posting date.
+        // This is the real date the job was opened/published, which
+        // the homepage uses to show only jobs posted in the last 15 days.
+        const postedDate = r.publishedDate
+          ? r.publishedDate.split("T")[0]
+          : today;
 
         seenUrls.add(url);
         jobs.push({
@@ -135,7 +138,7 @@ export async function fetchExaJobs(): Promise<ScrapedJob[]> {
           url,
           source: "exa",
           externalId: `exa-${hashCode(url)}`,
-          dateFound: today,
+          dateFound: postedDate,
         });
       }
 
