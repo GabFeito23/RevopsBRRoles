@@ -122,10 +122,9 @@ export async function fetchExaJobs(): Promise<ScrapedJob[]> {
         // Extract location from text content
         const location = extractLocation(fullText, url);
 
-        // Use publishedDate from Exa when available
-        const publishedDate = r.publishedDate
-          ? r.publishedDate.split("T")[0]
-          : today;
+        // Always use today as dateFound (when we discovered it).
+        // Exa's publishedDate can be weeks old and would get filtered
+        // out by the STALE_DAYS cutoff on the homepage.
 
         seenUrls.add(url);
         jobs.push({
@@ -136,7 +135,7 @@ export async function fetchExaJobs(): Promise<ScrapedJob[]> {
           url,
           source: "exa",
           externalId: `exa-${hashCode(url)}`,
-          dateFound: publishedDate,
+          dateFound: today,
         });
       }
 
