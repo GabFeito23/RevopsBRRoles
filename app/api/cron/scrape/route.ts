@@ -13,6 +13,7 @@ import { fetchJoobleJobs } from "@/lib/scraper/sources/jooble";
 import { fetchInhireJobs } from "@/lib/scraper/sources/inhire";
 import { fetchGoogleSearchJobs } from "@/lib/scraper/sources/google-search";
 import { fetchInfoJobsJobs } from "@/lib/scraper/sources/infojobs";
+import { fetchExaJobs } from "@/lib/scraper/sources/exa-search";
 import type { ScrapedJob } from "@/lib/scraper/types";
 
 const SOURCES: Record<number, { name: string; fetch: () => Promise<ScrapedJob[]> }> = {
@@ -23,10 +24,11 @@ const SOURCES: Record<number, { name: string; fetch: () => Promise<ScrapedJob[]>
   4: { name: "gupy_batch2", fetch: fetchInhireJobs },
   5: { name: "google_search", fetch: fetchGoogleSearchJobs },
   6: { name: "infojobs", fetch: fetchInfoJobsJobs },
+  7: { name: "exa_search", fetch: fetchExaJobs },
 };
 
-const CLEANUP_STEP = 7;
-const TOTAL_STEPS = 8;
+const CLEANUP_STEP = 8;
+const TOTAL_STEPS = 9;
 
 export async function GET(request: NextRequest) {
   // Verify cron secret (Vercel sets this header for cron invocations)
@@ -130,9 +132,9 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Step 7: Mark stale jobs as closed
+    // Step 8: Mark stale jobs as closed
     if (step === CLEANUP_STEP) {
-      console.log("[Step 7] Running staleness cleanup...");
+      console.log("[Step 8] Running staleness cleanup...");
 
       const cutoff = new Date();
       cutoff.setDate(cutoff.getDate() - STALE_DAYS);
@@ -148,7 +150,7 @@ export async function GET(request: NextRequest) {
           ),
         );
 
-      console.log(`[Step 7] Staleness cleanup complete`);
+      console.log(`[Step 8] Staleness cleanup complete`);
 
       return NextResponse.json({
         step,

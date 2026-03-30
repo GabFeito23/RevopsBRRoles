@@ -6,7 +6,7 @@ export const REQUEST_DELAY = 1_000; // ms between requests
 export const FUZZY_MATCH_THRESHOLD = 85;
 
 // --- Staleness ---
-export const STALE_DAYS = 7;
+export const STALE_DAYS = 15;
 
 // --- Company lists for ATS platforms ---
 
@@ -130,6 +130,66 @@ export const COMPANY_INDUSTRY: Record<string, string> = {
   eduzz: "SaaS/Tech", appsflyer: "SaaS/Tech", nasajon: "SaaS/Tech",
   neogrid: "SaaS/Tech", paytrack: "SaaS/Tech", nstech: "SaaS/Tech",
 };
+
+// --- Exa AI search queries ---
+// Each query is a semantic search with optional domain/text filters.
+// Exa uses neural search so queries should describe the ideal page, not just keywords.
+export interface ExaQueryConfig {
+  query: string;
+  numResults?: number;
+  includeDomains?: string[];
+  includeText?: string[];
+}
+
+export const EXA_SEARCH_QUERIES: ExaQueryConfig[] = [
+  // --- Brazil-focused RevOps roles ---
+  {
+    query: "RevOps revenue operations job opening in Brazil, remote or hybrid",
+    numResults: 20,
+  },
+  {
+    query: "Sales Ops sales operations analyst job in Brazil 2026",
+    numResults: 15,
+  },
+  {
+    query: "vaga RevOps revenue operations Brasil remoto",
+    numResults: 15,
+  },
+  {
+    query: "CRM admin Salesforce HubSpot job opening Brazil",
+    numResults: 15,
+  },
+  {
+    query: "marketing ops GTM operations engineer job Brazil or LATAM",
+    numResults: 15,
+  },
+  {
+    query: "CS ops customer success operations job Brazil remote",
+    numResults: 10,
+  },
+  // --- US/global companies hiring from Brazil ---
+  {
+    query: "RevOps revenue operations remote job hiring from Brazil or LATAM",
+    numResults: 15,
+    includeText: ["Brazil"],
+  },
+  {
+    query: "Sales operations analyst remote position open to candidates in Brazil",
+    numResults: 10,
+    includeText: ["Brazil"],
+  },
+  // --- Targeted job board searches ---
+  {
+    query: "RevOps revenue operations sales ops job listing on Gupy Brazil",
+    numResults: 10,
+    includeDomains: ["gupy.io"],
+  },
+  {
+    query: "revenue operations sales ops job posting LinkedIn Brazil",
+    numResults: 10,
+    includeDomains: ["linkedin.com"],
+  },
+];
 
 // --- City to state mapping ---
 export const CITY_STATE_MAP: Record<string, string> = {

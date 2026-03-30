@@ -63,7 +63,17 @@ RevOps, Sales Ops, CS Ops, GTM Ops, GTM Engineer, Marketing Ops, CRM Admin — a
 - Job cards have `div.js_rowCard[data-id]` structure with title in `h2`, company/location in child divs
 - Source: `lib/scraper/sources/infojobs.ts`
 
-### Step 7: Cleanup
+### Step 7: Exa AI Search — **~10-25 jobs**
+- Uses Exa AI's neural search API to discover RevOps jobs across the web
+- 10 semantic queries covering: RevOps, Sales Ops, CRM Admin, Marketing Ops, GTM Ops, CS Ops
+- Searches both Brazil-based roles AND US/global companies hiring from Brazil/LATAM
+- Filters by `startPublishedDate` (last 14 days) to only return recent postings
+- Discovers jobs on sites other scrapers miss: revopscareers.com, sportstechjobs.com, workingnomads.com, flexionis, himalayas.app, jobgether.com, anchorpoint, remocate.app, ashbyhq.com, etc.
+- Targeted domain searches for Gupy and LinkedIn
+- Requires `EXA_API_KEY` environment variable
+- Source: `lib/scraper/sources/exa-search.ts`
+
+### Step 8: Cleanup
 - Marks jobs as "Fechada" if `lastVerified` > 7 days old
 
 ### Removed Sources
@@ -80,8 +90,8 @@ RevOps, Sales Ops, CS Ops, GTM Ops, GTM Engineer, Marketing Ops, CRM Admin — a
 
 ## Architecture
 - **Frontend**: `app/page.tsx` (Server Component) + `components/job-board.tsx` (Client Component with filters)
-- **Cron**: `app/api/cron/scrape/route.ts` — step-chained pattern (7 source steps + 1 cleanup)
-- **Scrapers**: `lib/scraper/sources/*.ts` (gupy.ts, lever.ts, greenhouse.ts, jooble.ts, inhire.ts, google-search.ts, infojobs.ts)
+- **Cron**: `app/api/cron/scrape/route.ts` — step-chained pattern (8 source steps + 1 cleanup)
+- **Scrapers**: `lib/scraper/sources/*.ts` (gupy.ts, lever.ts, greenhouse.ts, jooble.ts, inhire.ts, google-search.ts, infojobs.ts, exa-search.ts)
 - **Classifier**: `lib/classifier/index.ts` — regex-based classification
 - **Dedup**: `lib/dedup.ts` — fuzzy matching with fuzzball
 - **DB**: `lib/db/schema.ts` (Drizzle) + `lib/db/index.ts` (lazy Neon connection)
@@ -113,6 +123,7 @@ RevOps, Sales Ops, CS Ops, GTM Ops, GTM Engineer, Marketing Ops, CRM Admin — a
 - `GUPY_API_TOKEN` — (optional) Not configured. Gupy portal API is broken anyway.
 - `GOOGLE_CSE_API_KEY` — (optional) Not configured. Would unlock Google Search scraper (Step 5) — free 100 searches/day.
 - `GOOGLE_CSE_ID` — (optional) Not configured. Create at https://programmablesearchengine.google.com/
+- `EXA_API_KEY` — (optional) Not configured. Unlocks Exa AI Search scraper (Step 7). Get at https://exa.ai/
 
 ## Setup Status
 - [x] Next.js app built and compiling
@@ -131,6 +142,7 @@ RevOps, Sales Ops, CS Ops, GTM Ops, GTM Engineer, Marketing Ops, CRM Admin — a
 - [x] Google Search scraper built (Step 5) — discovers jobs across all indexed sites
 - [x] InfoJobs.com.br scraper built (Step 6) — server-rendered, ~7-15 RevOps jobs
 - [x] Brazilian job aggregators researched — InfoJobs is the only viable one without headless browser
+- [x] Exa AI Search scraper built (Step 7) — neural search across all job boards, date-filtered, Brazil + US-hiring-from-Brazil
 
 ## Next Steps to Get More Jobs
 1. **Set up Google Custom Search API** — Free 100 searches/day. The scraper code is ready (Step 5), just needs `GOOGLE_CSE_API_KEY` + `GOOGLE_CSE_ID` configured in Vercel. Create at https://programmablesearchengine.google.com/

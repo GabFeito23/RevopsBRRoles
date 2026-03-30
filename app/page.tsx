@@ -1,17 +1,22 @@
-import { desc, eq } from "drizzle-orm";
+import { desc, eq, and, gte } from "drizzle-orm";
 import { getDb } from "@/lib/db";
 import { jobs } from "@/lib/db/schema";
 import { JobBoard } from "@/components/job-board";
+import { STALE_DAYS } from "@/lib/config";
 
 export const revalidate = 3600; // Revalidate every hour
 
 export default async function HomePage() {
   let allJobs: (typeof jobs.$inferSelect)[] = [];
   try {
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - STALE_DAYS);
+    const cutoffStr = cutoff.toISOString().split("T")[0];
+
     allJobs = await getDb()
       .select()
       .from(jobs)
-      .where(eq(jobs.status, "Aberta"))
+      .where(and(eq(jobs.status, "Aberta"), gte(jobs.dateFound, cutoffStr)))
       .orderBy(desc(jobs.dateFound));
   } catch {
     // DB not connected yet (first deploy before linking Neon)
