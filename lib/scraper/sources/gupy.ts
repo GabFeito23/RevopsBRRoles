@@ -7,7 +7,7 @@ import type { ScrapedJob } from "@/lib/scraper/types";
 interface GupyNextDataJob {
   id: number;
   title: string;
-  type?: string;
+  type?: string; // vacancy_type_effective | vacancy_type_internship | vacancy_type_talent_pool
   department?: string;
   workplace?: {
     address?: {
@@ -20,6 +20,9 @@ interface GupyNextDataJob {
     workplaceType?: string;
   };
 }
+
+// Talent pool listings ("Banco de Talentos") don't have an active application — skip them
+const EXCLUDED_GUPY_TYPES = ["vacancy_type_talent_pool"];
 
 /**
  * Scrapes Gupy company career pages by extracting __NEXT_DATA__ JSON.
@@ -58,6 +61,9 @@ export async function scrapeCompanyPages(companies: string[]): Promise<ScrapedJo
       for (const item of jobList) {
         const jobId = String(item.id);
         if (seenIds.has(jobId)) continue;
+
+        // Skip talent pool listings (can't apply)
+        if (item.type && EXCLUDED_GUPY_TYPES.includes(item.type)) continue;
 
         const title = item.title || "";
         if (!isRelevantJob(title)) continue;

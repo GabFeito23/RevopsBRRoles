@@ -3,7 +3,6 @@ const TITLE_KEYWORDS = [
   "revops", "rev ops", "revenue operations",
   "operações de receita", "operacoes de receita",
   "sales ops", "salesops", "sales operations",
-  "operações de vendas", "operacoes de vendas",
   "cs ops", "csops", "customer success ops", "customer success operations",
   "gtm ops", "go-to-market ops", "go to market ops",
   "gtm engineer",
@@ -13,6 +12,8 @@ const TITLE_KEYWORDS = [
   "crm admin", "crm administrator", "administrador crm",
   "salesforce admin", "hubspot admin",
   "operações comerciais", "operacoes comerciais",
+  "operações estratégicas", "operacoes estrategicas",
+  "operações de dados", "operacoes de dados",
 ];
 
 // Broader title keywords that require Tier 2 confirmation
@@ -57,8 +58,33 @@ function countDescriptionSignals(text: string): number {
   return count;
 }
 
+// "operações" alone is too broad (matches logistics, warehouse, etc.)
+// Only allow it when paired with qualifying words like comerciais, estratégia, dados
+const OPERACOES_QUALIFIERS = [
+  "comerciais", "comercial",
+  "estratég", "estrateg",  // matches estratégica, estratégicas, estrategia
+  "dados",
+  "receita",
+  "vendas",   // "operações de vendas" is ok when in TITLE_KEYWORDS
+  "marketing",
+  "revenue",
+];
+
+function hasGenericOperacoes(titleLower: string): boolean {
+  if (!titleLower.includes("operaç") && !titleLower.includes("operac")) return false;
+  // Check if any qualifier is present
+  for (const q of OPERACOES_QUALIFIERS) {
+    if (titleLower.includes(q)) return false;
+  }
+  // Has "operações" but no qualifier → too generic (e.g. "Auxiliar Operações")
+  return true;
+}
+
 export function isRelevantJob(title: string, description = ""): boolean {
   const titleLower = title.toLowerCase();
+
+  // Reject generic "operações" without qualifying words
+  if (hasGenericOperacoes(titleLower)) return false;
 
   // Tier 1: exact title keyword match
   for (const kw of TITLE_KEYWORDS) {
