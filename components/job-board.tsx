@@ -26,7 +26,7 @@ const STATE_OPTIONS = [
 ];
 
 const SOURCE_OPTIONS = [
-  "Todas", "gupy", "lever", "greenhouse", "linkedin", "inhire", "career_page",
+  "Todas", "gupy", "lever", "greenhouse", "infojobs", "exa", "google",
 ];
 
 export function JobBoard({ jobs }: JobBoardProps) {
