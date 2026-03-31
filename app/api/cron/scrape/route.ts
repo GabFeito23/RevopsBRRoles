@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { eq, ne, and, lte } from "drizzle-orm";
 import { getDb } from "@/lib/db";
 import { jobs } from "@/lib/db/schema";
-import { classifyJob } from "@/lib/classifier";
+import { classifyJob, isForeignLocation, targetsBrazil } from "@/lib/classifier";
 import { cleanText } from "@/lib/validator";
 import { deduplicate } from "@/lib/dedup";
 import { STALE_DAYS } from "@/lib/config";
@@ -65,7 +65,22 @@ export async function GET(request: NextRequest) {
         }
 
         // Classify
-        const classified = scraped.map(classifyJob);
+        const allClassified = scraped.map(classifyJob);
+
+        // Filter: remote jobs from foreign locations must target Brazil/LATAM
+        const classified = allClassified.filter((job) => {
+          if (job.workEnvironment === "Remote" || job.workEnvironment === "Remoto") {
+            const fullText = `${job.title} ${job.description} ${job.location}`;
+            if (isForeignLocation(fullText) && !targetsBrazil(fullText)) {
+              return false; // Remote foreign job that doesn't mention Brazil/LATAM
+            }
+          }
+          return true;
+        });
+        const filtered = allClassified.length - classified.length;
+        if (filtered > 0) {
+          console.log(`[Step ${step}] Filtered out ${filtered} remote jobs not targeting Brazil/LATAM`);
+        }
 
         // Get existing open jobs for dedup
         const existing = await getDb()

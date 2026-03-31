@@ -18,15 +18,11 @@ const SENIORITY_OPTIONS = [
   "Especialista", "Coordenador", "Gerente", "Head/Diretor",
 ];
 
-const ENVIRONMENT_OPTIONS = ["Todos", "Remoto", "Hibrido", "Presencial"];
+const ENVIRONMENT_OPTIONS = ["Todos", "Remoto", "Remote", "Hibrido", "Presencial"];
 
 const STATE_OPTIONS = [
   "Todos", "SP", "RJ", "MG", "PR", "SC", "RS", "BA", "DF",
   "CE", "PE", "GO", "ES", "Remoto", "Other",
-];
-
-const SOURCE_OPTIONS = [
-  "Todas", "gupy", "lever", "greenhouse", "infojobs", "exa", "google",
 ];
 
 export function JobBoard({ jobs }: JobBoardProps) {
@@ -35,7 +31,6 @@ export function JobBoard({ jobs }: JobBoardProps) {
   const [seniority, setSeniority] = useState("Todas");
   const [environment, setEnvironment] = useState("Todos");
   const [state, setState] = useState("Todos");
-  const [source, setSource] = useState("Todas");
 
   const filtered = useMemo(() => {
     return jobs.filter((job) => {
@@ -51,17 +46,15 @@ export function JobBoard({ jobs }: JobBoardProps) {
       if (seniority !== "Todas" && job.seniority !== seniority) return false;
       if (environment !== "Todos" && job.workEnvironment !== environment) return false;
       if (state !== "Todos" && job.state !== state) return false;
-      if (source !== "Todas" && job.source !== source) return false;
       return true;
     });
-  }, [jobs, search, role, seniority, environment, state, source]);
+  }, [jobs, search, role, seniority, environment, state]);
 
   const activeFilters =
     (role !== "Todas" ? 1 : 0) +
     (seniority !== "Todas" ? 1 : 0) +
     (environment !== "Todos" ? 1 : 0) +
-    (state !== "Todos" ? 1 : 0) +
-    (source !== "Todas" ? 1 : 0);
+    (state !== "Todos" ? 1 : 0);
 
   function clearFilters() {
     setSearch("");
@@ -69,7 +62,6 @@ export function JobBoard({ jobs }: JobBoardProps) {
     setSeniority("Todas");
     setEnvironment("Todos");
     setState("Todos");
-    setSource("Todas");
   }
 
   return (
@@ -91,7 +83,6 @@ export function JobBoard({ jobs }: JobBoardProps) {
         <FilterSelect label="Senioridade" value={seniority} options={SENIORITY_OPTIONS} onChange={setSeniority} />
         <FilterSelect label="Modelo" value={environment} options={ENVIRONMENT_OPTIONS} onChange={setEnvironment} />
         <FilterSelect label="Estado" value={state} options={STATE_OPTIONS} onChange={setState} />
-        <FilterSelect label="Fonte" value={source} options={SOURCE_OPTIONS} onChange={setSource} />
         {activeFilters > 0 && (
           <button
             onClick={clearFilters}

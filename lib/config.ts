@@ -44,15 +44,18 @@ export const GUPY_COMPANIES_BATCH2 = [
 ];
 
 // --- Jooble search keywords (used by Jooble API scraper) ---
+// Searches US/global API for remote jobs targeting Brazil/LATAM
 export const JOOBLE_SEARCH_KEYWORDS = [
-  "revops",
-  "revenue operations",
-  "sales ops",
-  "cs ops",
-  "marketing ops",
-  "CRM admin",
-  "operações comerciais",
-  "salesforce admin",
+  "revops remote LATAM",
+  "revenue operations remote Brazil",
+  "sales ops remote LATAM",
+  "revops remote",
+  "revenue operations remote",
+  "sales operations remote",
+  "CRM admin remote LATAM",
+  "salesforce admin remote LATAM",
+  "marketing ops remote",
+  "GTM ops remote",
 ];
 
 // --- Google Custom Search queries (broad web discovery) ---

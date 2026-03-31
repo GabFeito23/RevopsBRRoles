@@ -39,12 +39,12 @@ RevOps, Sales Ops, CS Ops, GTM Ops, GTM Engineer, Marketing Ops, CRM Admin — a
 - Public JSON API: `https://boards-api.greenhouse.io/v1/boards/{company}/jobs`
 - Companies: nubank, neon, picpay, xpinc, c6bank, appsflyer, etc.
 
-### Step 3: Jooble API — **Not working for Brazil**
-- API at `jooble.org/api/` only returns US jobs; Brazilian locations return 0
-- `br.jooble.org/api/` returns 403 (Cloudflare blocked)
-- The Jooble **website** (`br.jooble.org`) shows 63+ Brazilian RevOps jobs, but data is JS-rendered and not accessible server-side
-- `JOOBLE_API_KEY` is configured but useless until Jooble fixes their Brazil API
-- **This step should be replaced with Google Custom Search or another working source**
+### Step 3: Jooble API (USA → LATAM remote) — **Active source**
+- Uses US Jooble API (`jooble.org/api/`) which works reliably
+- Searches for remote RevOps/Sales Ops/CRM roles, then filters for those mentioning Brazil/LATAM
+- Keywords include "revops remote LATAM", "revenue operations remote Brazil", etc.
+- Only keeps jobs whose title, description, or location mentions Brazil, LATAM, or Latin America
+- `JOOBLE_API_KEY` is configured and working
 
 ### Step 4: Gupy Batch 2 (33 companies) — **0 jobs currently**
 - Same `__NEXT_DATA__` approach as batch 1, larger general companies
@@ -88,7 +88,7 @@ RevOps, Sales Ops, CS Ops, GTM Ops, GTM Engineer, Marketing Ops, CRM Admin — a
 ## Scraping Lessons Learned
 - **Gupy portal API is broken** for niche terms. `portal.api.gupy.io/api/job?name=revops` returns 0. But Google indexes hundreds of RevOps jobs on Gupy company subdomains. The working approach is scraping `__NEXT_DATA__` from each company's career page.
 - **Most job aggregators are SPAs**: Indeed, Jooble, Glassdoor, Inhire, Workable all render job data via JavaScript. Server-side HTTP scraping gets empty/minimal HTML. Would need a headless browser (Puppeteer/Playwright) to scrape them.
-- **Jooble API is US-only**: Despite `br.jooble.org` showing Brazilian jobs, the REST API only returns US results. The BR subdomain API is blocked by Cloudflare.
+- **Jooble API is US-only but useful**: The BR API is blocked by Cloudflare, but the US API works well for finding remote roles that target Brazil/LATAM candidates. We search globally and filter for LATAM mentions.
 - **InfoJobs.com.br is server-rendered** (ASP.NET) and scrapeable with Cheerio. Has 7-15 RevOps jobs. Other BR aggregators (Catho, Vagas.com.br, Remotar) are client-rendered SPAs or have zero RevOps results.
 - **Brazilian job aggregator research** (March 2026): Vagas.com.br has Cloudflare + ~0 RevOps jobs. Catho returns 404s (SPA). ProgramaThor is dev-only. Trampos.co has ~1 job. Remotar is client-rendered with no data.
 - **Exa AI Search** excels at semantic discovery across the entire web. Found 50+ relevant jobs in first run. Particularly good at finding US/global remote roles targeting Brazil/LATAM that other scrapers miss entirely.
@@ -143,9 +143,9 @@ RevOps, Sales Ops, CS Ops, GTM Ops, GTM Engineer, Marketing Ops, CRM Admin — a
 - `GOOGLE_CSE_ID` — (optional) Not configured. Create at https://programmablesearchengine.google.com/
 
 ## Frontend Filters
-- Source filter (`components/job-board.tsx`): gupy, lever, greenhouse, infojobs, exa, google
-- Other filters: Categoria (role), Senioridade, Modelo (work mode), Estado
+- Filters: Categoria (role), Senioridade, Modelo (work mode), Estado
 - Search bar: free-text search across title, company, tech stack
+- Source and dateFound are NOT shown on job cards (removed for cleaner UI)
 - Page revalidates every 1 hour (`revalidate = 3600`)
 
 ## Setup Status

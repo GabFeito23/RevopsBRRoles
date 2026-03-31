@@ -112,11 +112,11 @@ const BRAZIL_TARGET_PATTERNS = [
   /\blatam\b/i, /\blatin\s*america\b/i, /\bamérica\s*latina\b/i,
 ];
 
-function isForeignLocation(text: string): boolean {
+export function isForeignLocation(text: string): boolean {
   return FOREIGN_LOCATION_PATTERNS.some((p) => p.test(text));
 }
 
-function targetsBrazil(text: string): boolean {
+export function targetsBrazil(text: string): boolean {
   return BRAZIL_TARGET_PATTERNS.some((p) => p.test(text));
 }
 
@@ -124,18 +124,20 @@ function classifyWorkEnvironment(description: string, location: string): string 
   const text = `${description} ${location}`.toLowerCase();
   const fullText = `${description} ${location}`;
 
-  // If the job is located outside Brazil but targets BR/LATAM,
-  // it must be remote — you can't be presencial in the US from Brazil.
-  if (isForeignLocation(fullText) && targetsBrazil(fullText)) {
-    return "Remoto";
+  // Foreign location → "Remote" (US/global jobs targeting BR/LATAM)
+  // Brazilian location → "Remoto" (BR jobs that are remote)
+  const isForeign = isForeignLocation(fullText);
+
+  if (isForeign && targetsBrazil(fullText)) {
+    return "Remote";
   }
 
-  if (matchesAny(text, REMOTE_PATTERNS)) return "Remoto";
+  if (matchesAny(text, REMOTE_PATTERNS)) return isForeign ? "Remote" : "Remoto";
   if (matchesAny(text, HYBRID_PATTERNS)) return "Hibrido";
   if (matchesAny(text, ONSITE_PATTERNS)) return "Presencial";
 
-  // If location is clearly foreign (no Brazil mention), default to Remoto
-  if (isForeignLocation(fullText)) return "Remoto";
+  // If location is clearly foreign (no Brazil mention), default to Remote
+  if (isForeign) return "Remote";
 
   return "Presencial";
 }
