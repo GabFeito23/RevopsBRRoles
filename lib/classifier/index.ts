@@ -96,14 +96,32 @@ function classifySeniority(title: string): string {
 // If a job is located outside Brazil, it MUST be remote for BR/LATAM candidates.
 const FOREIGN_LOCATION_PATTERNS = [
   // US states & cities
-  /\b(?:new york|san francisco|los angeles|chicago|austin|boston|seattle|denver|miami|atlanta|dallas|houston|portland|phoenix|charlotte|nashville|minneapolis|washington\s*d\.?c\.?)\b/i,
+  /\b(?:new york|san francisco|los angeles|chicago|austin|boston|seattle|denver|miami|atlanta|dallas|houston|portland|phoenix|charlotte|nashville|minneapolis|washington\s*d\.?c\.?|san diego|san jose|palo alto|mountain view|sunnyvale|raleigh|salt lake city|detroit|philadelphia|pittsburgh)\b/i,
   /\b(?:NY|CA|TX|FL|WA|IL|MA|CO|GA|NC|PA|OH|VA|AZ|OR|NV|MN|TN|DC)\b/,
   // Countries / regions
   /\bunited states\b/i, /\busa\b/i, /\bu\.s\.a?\b/i,
-  /\bcanada\b/i, /\buk\b/i, /\bunited kingdom\b/i, /\bgermany\b/i,
+  /\bcanada\b/i, /\btoronto\b/i, /\bvancouver\b/i, /\bmontreal\b/i,
+  /\buk\b/i, /\bunited kingdom\b/i, /\blondon\b/i, /\bmanchester\b/i,
+  /\bgermany\b/i, /\bberlin\b/i, /\bmunich\b/i,
+  /\bfrance\b/i, /\bparis\b/i,
+  /\bspain\b/i, /\bmadrid\b/i, /\bbarcelona\b/i,
+  /\bportugal\b/i, /\blisboa?\b/i, /\bporto\b/i,
+  /\bnetherlands\b/i, /\bamsterdam\b/i,
+  /\bireland\b/i, /\bdublin\b/i,
+  /\bisrael\b/i, /\btel[\s-]?aviv\b/i,
+  /\bindia\b/i, /\bbangalore\b/i, /\bmumbai\b/i, /\bhyderabad\b/i,
+  /\bsingapore\b/i, /\baustralia\b/i, /\bsydney\b/i, /\bmelbourne\b/i,
+  /\bjapan\b/i, /\btokyo\b/i,
   /\beurope\b/i, /\beuropa\b/i,
   /\blatam\b/i, /\blatin\s*america\b/i, /\bamérica\s*latina\b/i,
   /\bglobal\b/i, /\bworldwide\b/i,
+  // LATAM countries (not Brazil)
+  /\bargentin[ae]\b/i, /\bbuenos\s*aires\b/i,
+  /\bm[eé]xico\b/i, /\bmexico\s*city\b/i, /\bciudad\s*de\s*m[eé]xico\b/i,
+  /\bcolombia\b/i, /\bbogot[aá]\b/i, /\bmedell[ií]n\b/i,
+  /\bchile\b/i, /\bsantiago\b/i,
+  /\bperu\b/i, /\blima\b/i,
+  /\buruguay\b/i, /\bmontevideo\b/i,
 ];
 
 // Signals that a job targets Brazil/LATAM candidates specifically
@@ -124,20 +142,21 @@ function classifyWorkEnvironment(description: string, location: string): string 
   const text = `${description} ${location}`.toLowerCase();
   const fullText = `${description} ${location}`;
 
-  // Foreign location → "Remote" (US/global jobs targeting BR/LATAM)
-  // Brazilian location → "Remoto" (BR jobs that are remote)
   const isForeign = isForeignLocation(fullText);
+  const mentionsBrazil = targetsBrazil(fullText);
 
-  if (isForeign && targetsBrazil(fullText)) {
-    return "Remote";
+  // Foreign location: ALWAYS force to "Remoto" if it targets Brazil/LATAM.
+  // You can't be presencial/hibrido from another country.
+  if (isForeign && mentionsBrazil) {
+    return "Remoto";
   }
 
-  if (matchesAny(text, REMOTE_PATTERNS)) return isForeign ? "Remote" : "Remoto";
+  // Foreign location without Brazil mention → reject (will be filtered out in route)
+  if (isForeign) return "Foreign";
+
+  if (matchesAny(text, REMOTE_PATTERNS)) return "Remoto";
   if (matchesAny(text, HYBRID_PATTERNS)) return "Hibrido";
   if (matchesAny(text, ONSITE_PATTERNS)) return "Presencial";
-
-  // If location is clearly foreign (no Brazil mention), default to Remote
-  if (isForeign) return "Remote";
 
   return "Presencial";
 }

@@ -18,7 +18,7 @@ const SENIORITY_OPTIONS = [
   "Especialista", "Coordenador", "Gerente", "Head/Diretor",
 ];
 
-const ENVIRONMENT_OPTIONS = ["Todos", "Remoto", "Remote", "Hibrido", "Presencial"];
+const ENVIRONMENT_OPTIONS = ["Todos", "Remoto", "Hibrido", "Presencial"];
 
 const STATE_OPTIONS = [
   "Todos", "SP", "RJ", "MG", "PR", "SC", "RS", "BA", "DF",

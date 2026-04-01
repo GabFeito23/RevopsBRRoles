@@ -5,6 +5,7 @@ import { jobs } from "@/lib/db/schema";
 import { classifyJob, isForeignLocation, targetsBrazil } from "@/lib/classifier";
 import { cleanText } from "@/lib/validator";
 import { deduplicate } from "@/lib/dedup";
+import { isUrlReachable } from "@/lib/scraper/http";
 import { STALE_DAYS } from "@/lib/config";
 import { fetchGupyJobs } from "@/lib/scraper/sources/gupy";
 import { fetchLeverJobs } from "@/lib/scraper/sources/lever";
@@ -67,14 +68,16 @@ export async function GET(request: NextRequest) {
         // Classify
         const allClassified = scraped.map(classifyJob);
 
-        // Filter: remote jobs from foreign locations must target Brazil/LATAM
+        // Filter: reject any job from foreign locations that doesn't target Brazil/LATAM
+        // Also reject any "Foreign" work environment (foreign + no Brazil mention)
         const classified = allClassified.filter((job) => {
-          if (job.workEnvironment === "Remote" || job.workEnvironment === "Remoto") {
-            const fullText = `${job.title} ${job.description} ${job.location}`;
-            if (isForeignLocation(fullText) && !targetsBrazil(fullText)) {
-              return false; // Remote foreign job that doesn't mention Brazil/LATAM
-            }
-          }
+          // "Foreign" = foreign location, no Brazil mention → reject
+          if (job.workEnvironment === "Foreign") return false;
+
+          // Double-check: any remaining foreign location without Brazil target
+          const fullText = `${job.title} ${job.description} ${job.location}`;
+          if (isForeignLocation(fullText) && !targetsBrazil(fullText)) return false;
+
           return true;
         });
         const filtered = allClassified.length - classified.length;
@@ -91,9 +94,21 @@ export async function GET(request: NextRequest) {
         const { newJobs, updatedIds } = deduplicate(classified, existing);
         console.log(`[Step ${step}] ${newJobs.length} new, ${updatedIds.length} to refresh`);
 
+        // Validate URLs before inserting — only keep jobs with reachable links
+        const validJobs = [];
+        for (const job of newJobs) {
+          const reachable = await isUrlReachable(job.url);
+          if (reachable) {
+            validJobs.push(job);
+          } else {
+            console.log(`[Step ${step}] Skipped (broken URL): ${job.url}`);
+          }
+        }
+        console.log(`[Step ${step}] ${validJobs.length}/${newJobs.length} jobs have valid URLs`);
+
         // Insert new jobs
         const today = new Date().toISOString().split("T")[0];
-        for (const job of newJobs) {
+        for (const job of validJobs) {
           await getDb().insert(jobs).values({
             externalId: job.externalId,
             title: job.title,
