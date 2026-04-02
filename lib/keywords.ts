@@ -97,12 +97,17 @@ function hasGenericOperacoes(titleLower: string): boolean {
   return true;
 }
 
+function normalize(text: string): string {
+  return text.toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g, "");
+}
+
 export function isRelevantJob(title: string, description = ""): boolean {
   const titleLower = title.toLowerCase();
+  const titleNorm = normalize(title);
 
   // Reject jobs from non-RevOps domains (finance, logistics, accounting, etc.)
   for (const rk of REJECTION_KEYWORDS) {
-    if (titleLower.includes(rk)) return false;
+    if (titleLower.includes(rk) || titleNorm.includes(normalize(rk))) return false;
   }
 
   // Reject generic "operações" without qualifying words

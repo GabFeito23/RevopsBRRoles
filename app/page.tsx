@@ -4,7 +4,7 @@ import { jobs } from "@/lib/db/schema";
 import { JobBoard } from "@/components/job-board";
 import { STALE_DAYS } from "@/lib/config";
 
-export const revalidate = 3600; // Revalidate every hour
+export const revalidate = 300; // Revalidate every 5 minutes
 
 export default async function HomePage() {
   let allJobs: (typeof jobs.$inferSelect)[] = [];

@@ -52,7 +52,18 @@ export async function POST(request: NextRequest) {
     }
 
     // 2. Close jobs that no longer pass keyword relevance (finance ops, etc.)
-    if (!isRelevantJob(job.title, job.description || "")) {
+    // Also check each part of pipe-separated titles (e.g. "Analista de Operações | Custódia...")
+    const titleParts = job.title.split(/[|–—]/).map((p: string) => p.trim());
+    const hasFinanceKeyword = titleParts.some((part: string) => {
+      const p = part.toLowerCase();
+      return p.includes("custódia") || p.includes("custodia") ||
+        p.includes("controladoria") || p.includes("fundos") ||
+        p.includes("carteira") || p.includes("carteiras") ||
+        p.includes("contábil") || p.includes("contabil") ||
+        p.includes("fiscal") || p.includes("tesouraria") ||
+        p.includes("faturamento") || p.includes("logística") || p.includes("logistica");
+    });
+    if (hasFinanceKeyword || !isRelevantJob(job.title, job.description || "")) {
       await getDb()
         .update(jobs)
         .set({ status: "Fechada", updatedAt: new Date() })
