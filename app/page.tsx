@@ -16,7 +16,7 @@ export default async function HomePage() {
     allJobs = await getDb()
       .select()
       .from(jobs)
-      .where(and(eq(jobs.status, "Aberta"), gte(jobs.dateFound, cutoffStr)))
+      .where(and(eq(jobs.status, "Aberta"), eq(jobs.workEnvironment, "Remoto"), gte(jobs.dateFound, cutoffStr)))
       .orderBy(desc(jobs.dateFound));
   } catch {
     // DB not connected yet (first deploy before linking Neon)

@@ -173,9 +173,24 @@ function isNonJobResult(url: string, title: string): boolean {
   if (lower.includes("/tools/") || lower.includes("/solucoes/")) return true;
   if (lower.includes("/integration")) return true;
 
-  // Skip social media posts (Instagram, Twitter, etc.)
+  // Skip social media posts (Instagram, Twitter, LinkedIn posts/articles)
   if (lower.includes("instagram.com") || lower.includes("twitter.com")) return true;
   if (lower.includes("x.com/")) return true;
+  // LinkedIn posts/articles (not job listings)
+  if (lower.includes("linkedin.com/pulse/")) return true;
+  if (lower.includes("linkedin.com/posts/")) return true;
+  if (lower.includes("linkedin.com/feed/")) return true;
+
+  // Title patterns that indicate articles/posts, not job listings
+  if (titleLower.includes("#revops")) return true;
+  if (titleLower.includes("shift:")) return true;
+  if (titleLower.includes("how to ")) return true;
+  if (titleLower.includes("what is ")) return true;
+  if (titleLower.includes("guide to ")) return true;
+  if (/^\d+\s+(tips|ways|steps|strategies)/i.test(titleLower)) return true;
+  if (titleLower.includes("podcast")) return true;
+  if (titleLower.includes("webinar")) return true;
+  if (titleLower.includes("newsletter")) return true;
 
   // Skip homepage-only URLs
   if (lower.match(/^https?:\/\/[^/]+\/?$/)) return true;

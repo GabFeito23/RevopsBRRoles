@@ -18,7 +18,6 @@ const SENIORITY_OPTIONS = [
   "Especialista", "Coordenador", "Gerente", "Head/Diretor",
 ];
 
-const ENVIRONMENT_OPTIONS = ["Todos", "Remoto", "Hibrido", "Presencial"];
 
 const STATE_OPTIONS = [
   "Todos", "SP", "RJ", "MG", "PR", "SC", "RS", "BA", "DF",
@@ -29,7 +28,6 @@ export function JobBoard({ jobs }: JobBoardProps) {
   const [search, setSearch] = useState("");
   const [role, setRole] = useState("Todas");
   const [seniority, setSeniority] = useState("Todas");
-  const [environment, setEnvironment] = useState("Todos");
   const [state, setState] = useState("Todos");
 
   const filtered = useMemo(() => {
@@ -44,23 +42,20 @@ export function JobBoard({ jobs }: JobBoardProps) {
       }
       if (role !== "Todas" && job.roleCategory !== role) return false;
       if (seniority !== "Todas" && job.seniority !== seniority) return false;
-      if (environment !== "Todos" && job.workEnvironment !== environment) return false;
       if (state !== "Todos" && job.state !== state) return false;
       return true;
     });
-  }, [jobs, search, role, seniority, environment, state]);
+  }, [jobs, search, role, seniority, state]);
 
   const activeFilters =
     (role !== "Todas" ? 1 : 0) +
     (seniority !== "Todas" ? 1 : 0) +
-    (environment !== "Todos" ? 1 : 0) +
     (state !== "Todos" ? 1 : 0);
 
   function clearFilters() {
     setSearch("");
     setRole("Todas");
     setSeniority("Todas");
-    setEnvironment("Todos");
     setState("Todos");
   }
 
@@ -81,7 +76,6 @@ export function JobBoard({ jobs }: JobBoardProps) {
       <div className="mb-6 flex flex-wrap gap-3">
         <FilterSelect label="Categoria" value={role} options={ROLE_OPTIONS} onChange={setRole} />
         <FilterSelect label="Senioridade" value={seniority} options={SENIORITY_OPTIONS} onChange={setSeniority} />
-        <FilterSelect label="Modelo" value={environment} options={ENVIRONMENT_OPTIONS} onChange={setEnvironment} />
         <FilterSelect label="Estado" value={state} options={STATE_OPTIONS} onChange={setState} />
         {activeFilters > 0 && (
           <button

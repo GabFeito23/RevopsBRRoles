@@ -70,6 +70,23 @@ const OPERACOES_QUALIFIERS = [
   "revenue",
 ];
 
+// Title keywords that indicate the job is NOT RevOps (finance, logistics, etc.)
+const REJECTION_KEYWORDS = [
+  "custódia", "custodia",
+  "controladoria",
+  "fundos", "fundo de",
+  "carteira administrad", "carteiras administrad",
+  "back office", "backoffice",
+  "tesouraria", "treasury",
+  "compliance",
+  "auditoria", "audit",
+  "contábil", "contabil", "contabilidade",
+  "fiscal", "tributár", "tributar",
+  "folha de pagamento", "payroll",
+  "logística", "logistica", "warehouse", "supply chain",
+  "faturamento",
+];
+
 function hasGenericOperacoes(titleLower: string): boolean {
   if (!titleLower.includes("operaç") && !titleLower.includes("operac")) return false;
   // Check if any qualifier is present
@@ -82,6 +99,11 @@ function hasGenericOperacoes(titleLower: string): boolean {
 
 export function isRelevantJob(title: string, description = ""): boolean {
   const titleLower = title.toLowerCase();
+
+  // Reject jobs from non-RevOps domains (finance, logistics, accounting, etc.)
+  for (const rk of REJECTION_KEYWORDS) {
+    if (titleLower.includes(rk)) return false;
+  }
 
   // Reject generic "operações" without qualifying words
   if (hasGenericOperacoes(titleLower)) return false;

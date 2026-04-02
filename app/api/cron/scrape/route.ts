@@ -68,11 +68,13 @@ export async function GET(request: NextRequest) {
         // Classify
         const allClassified = scraped.map(classifyJob);
 
-        // Filter: reject any job from foreign locations that doesn't target Brazil/LATAM
-        // Also reject any "Foreign" work environment (foreign + no Brazil mention)
+        // Filter: only keep Remoto jobs in Brazil. Reject Presencial, Híbrido, and Foreign.
         const classified = allClassified.filter((job) => {
           // "Foreign" = foreign location, no Brazil mention → reject
           if (job.workEnvironment === "Foreign") return false;
+
+          // Only keep remote jobs
+          if (job.workEnvironment !== "Remoto") return false;
 
           // Double-check: any remaining foreign location without Brazil target
           const fullText = `${job.title} ${job.description} ${job.location}`;
